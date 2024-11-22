@@ -1,27 +1,41 @@
-// routes/symptoms.js
-
 const express = require('express');
+const Symptom = require('../model/symptom');
 const router = express.Router();
 
-// Simulate a database (you can replace this with actual DB logic)
-let symptomsDatabase = [];
-
-// POST request to save symptoms
-router.post('/', (req, res) => {
-  const { symptoms } = req.body;
-
-  if (!symptoms) {
-    return res.status(400).json({ message: 'Symptoms are required.' });
-  }
-
-  // Save to database (for now, we'll just push it to an array)
-  symptomsDatabase.push({ id: symptomsDatabase.length + 1, symptoms });
-  return res.status(201).json({ message: 'Symptoms recorded successfully!' });
+// Get all symptoms
+router.get('/', async (req, res) => {
+    try {
+        const symptoms = await Symptom.find();
+        res.json(symptoms);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 });
 
-// Optional: GET request to retrieve all symptoms (for testing purposes)
-router.get('/', (req, res) => {
-  res.status(200).json(symptomsDatabase);
+// Update symptom by ID
+router.put('/:id', async (req, res) => {
+    try {
+        const updatedSymptom = await Symptom.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        if (!updatedSymptom) {
+            return res.status(404).json({ message: 'Symptom not found' });
+        }
+        res.json(updatedSymptom);
+    } catch (error) {
+        res.status(400).json({ message: error.message });
+    }
+});
+
+// Delete symptom by ID
+router.delete('/:id', async (req, res) => {
+    try {
+        const deletedSymptom = await Symptom.findByIdAndDelete(req.params.id);
+        if (!deletedSymptom) {
+            return res.status(404).json({ message: 'Symptom not found' });
+        }
+        res.json({ message: 'Symptom deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 });
 
 module.exports = router;
