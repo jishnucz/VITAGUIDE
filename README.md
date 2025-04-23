@@ -1,14 +1,20 @@
- Backend Setup:
-   - Ensure Node.js is installed on your system.
-   - Navigate to the backend folder and install dependencies:
-        cd server,
-         npm i
-   - Start the backend server:
-        npm start
+# Vitaguide 🍎
 
- Frontend Setup:
-   - Navigate to the frontend folder and install dependencies:
-       cd client,
-       npm install
-   - Start the frontend development server:
-       npm run dev
+Vitaguide is a web application designed to help parents identify potential vitamin deficiencies in children and provide personalized dietary suggestions based on symptoms and eating habits.
+
+## Features
+
+- 👩‍⚕️ Vitamin deficiency detection based on symptoms
+- 🥦 Personalized diet recommendations
+- 🧾 Questionnaire for different child age groups
+- 📤 Email delivery of diet plans
+- 📊 Admin panel to manage users, feedback, and quiz content
+- 🧑‍💼 User profile with editable personal details
+
+## Tech Stack
+
+- **Frontend:** React.js, Tailwind CSS
+- **Backend:** Node.js, Express.js, MongoDB
+- **Other Tools:** Multer (image upload), Nodemailer (email), JWT (auth)
+
+
