@@ -19,6 +19,7 @@ const app = express();
 const Admin = require("./model/admin");
 const fs = require("fs");
 
+const bcrypt = require("bcryptjs");
 const PORT = Number(process.env.PORT) || 3001;
 const MONGODB_URI = process.env.MONGODB_URI;
 const MAIL_USER = process.env.MAIL_USER;
@@ -31,7 +32,6 @@ if (!MONGODB_URI) {
 // Middleware
 app.use(express.json());
 app.use(cors());
-app.use(express.urlencoded({ extended: true }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(cookieParser());
 // MongoDB connection
@@ -39,24 +39,6 @@ mongoose
   .connect(MONGODB_URI)
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.log("MongoDB connection error:", err));
-
-// Login endpoint
-// app.post("/login", (req, res) => {
-//     const { email, password } = req.body;
-//     EmployeeModel.findOne({ email: email })
-//         .then(user => {
-//             if (user) {
-//                 if (user.password === password) {
-//                     res.json("Success");
-//                 } else {
-//                     res.status(401).json("The password is incorrect"); // 401 Unauthorized
-//                 }
-//             } else {
-//                 res.status(404).json("No record existed"); // 404 Not Found
-//             }
-//         })
-//         .catch(err => res.status(500).json({ error: err.message })); // Handle errors
-// });
 
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
@@ -68,7 +50,8 @@ app.post("/login", async (req, res) => {
       return res.status(404).json({ error: "No record existed" });
     }
 
-    if (user.password !== password) {
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
       return res.status(401).json({ error: "The password is incorrect" });
     }
 
@@ -92,43 +75,43 @@ app.post("/login", async (req, res) => {
 app.post("/alogin", async (req, res) => {
   try {
     const { email, password } = req.body;
-
-    // Find user by email
     const user = await Admin.findOne({ email });
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Compare password
-    const isMatch = password === user.password;
+    const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Generate token
     const token = generateToken(user._id, user.email);
-
     res.json({
       token,
-      user: {
-        id: user._id,
-        name: user.name,
-        email: user.email,
-      },
+      user: { id: user._id, name: user.name, email: user.email },
     });
   } catch (error) {
     res.status(500).json({ message: "Server error" });
   }
 });
 
+app.post("/register", async (req, res) => {
+  try {
+    const { name, email, password } = req.body;
+    const hashedPassword = await bcrypt.hash(password, 12);
+    const employee = await EmployeeModel.create({ name, email, password: hashedPassword });
+    res.status(201).json({ id: employee._id, email: employee.email });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+});
+
 app.post("/aregister", async (req, res) => {
   const { name, email, password } = req.body;
-  console.log(req.body);
 
   try {
     // Check if the user already exists
     let user = await Admin.findOne({ email });
-    console.log(user);
     if (user) {
       return res.status(400).json({ message: "User already exists" });
     }
@@ -137,15 +120,13 @@ app.post("/aregister", async (req, res) => {
     user = new Admin({
       name,
       email,
-      password,
+      password: await bcrypt.hash(password, 12),
     });
-    console.log(user);
 
     // Save the user to the database
     await user
       .save()
-      .then((savedUser) => {
-        console.log("User saved:", savedUser);
+      .then(() => {
         res.status(201).json({ message: "User registered successfully" });
       })
       .catch((saveError) => {
