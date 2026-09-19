@@ -6,10 +6,10 @@ if (!JWT_SECRET) {
     throw new Error('JWT_SECRET must be set in the server environment');
 }
 
-const generateToken = (userId, email) => {
+const generateToken = (userId, email, role = 'user') => {
     try {
         const token = jwt.sign(
-            { userId, email },
+            { userId, email, role },
             JWT_SECRET,
             { expiresIn: '24h' } // Token expires in 24 hours
         );

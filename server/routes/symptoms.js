@@ -2,6 +2,10 @@ const express = require('express');
 const Symptom = require('../model/symptom');
 const router = express.Router();
 const { authenticateToken } = require('../utils/jwthelper');
+const requireAdmin = (req, res, next) => {
+    if (req.user?.role !== 'admin') return res.status(403).json({ message: 'Admin access required' });
+    next();
+};
 
 // Get all symptoms
 router.get('/', authenticateToken, async (req, res) => {
@@ -14,7 +18,7 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // Update symptom by ID
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id', authenticateToken, requireAdmin, async (req, res) => {
     try {
         const updatedSymptom = await Symptom.findByIdAndUpdate(req.params.id, req.body, { new: true });
         if (!updatedSymptom) {
@@ -27,7 +31,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
 });
 
 // Delete symptom by ID
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id', authenticateToken, requireAdmin, async (req, res) => {
     try {
         const deletedSymptom = await Symptom.findByIdAndDelete(req.params.id);
         if (!deletedSymptom) {

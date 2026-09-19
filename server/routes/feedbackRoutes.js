@@ -4,6 +4,11 @@ const { generateToken, verifyToken } = require("../utils/jwthelper");
 const router = express.Router();
 const { authenticateToken } = require("../utils/jwthelper");
 
+const requireAdmin = (req, res, next) => {
+  if (req.user?.role !== "admin") return res.status(403).json({ message: "Admin access required" });
+  next();
+};
+
 // Endpoint to submit feedback
 router.post("/submitFeedback", authenticateToken, async (req, res) => {
   const token = req.headers.authorization?.split(" ")[1];
@@ -37,7 +42,7 @@ router.post("/submitFeedback", authenticateToken, async (req, res) => {
   }
 });
 
-router.get("/getAllFeedback", authenticateToken, async (req, res) => {
+router.get("/getAllFeedback", authenticateToken, requireAdmin, async (req, res) => {
   try {
     const feedbackEntries = await Feedback.find();
     res.status(200).json(feedbackEntries);
@@ -76,7 +81,7 @@ router.get("/userFeedback", authenticateToken, async (req, res) => {
 });
 
 // Endpoint to delete feedback
-router.delete("/deleteFeedback/:id", authenticateToken, async (req, res) => {
+router.delete("/deleteFeedback/:id", authenticateToken, requireAdmin, async (req, res) => {
   try {
     await Feedback.findByIdAndDelete(req.params.id);
     res.status(200).send("Feedback deleted successfully!");
@@ -86,7 +91,7 @@ router.delete("/deleteFeedback/:id", authenticateToken, async (req, res) => {
 });
 
 // Endpoint to update feedback
-router.put("/updateFeedback/:id", authenticateToken, async (req, res) => {
+router.put("/updateFeedback/:id", authenticateToken, requireAdmin, async (req, res) => {
   try {
     const updatedFeedback = await Feedback.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.status(200).send("Feedback updated successfully!");

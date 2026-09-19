@@ -55,7 +55,7 @@ app.post("/login", async (req, res) => {
       return res.status(401).json({ error: "The password is incorrect" });
     }
 
-    const token = generateToken(user._id, user.email);
+    const token = generateToken(user._id, user.email, 'user');
 
     const userData = {
       _id: user._id,
@@ -85,7 +85,7 @@ app.post("/alogin", async (req, res) => {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const token = generateToken(user._id, user.email);
+    const token = generateToken(user._id, user.email, 'admin');
     res.json({
       token,
       user: { id: user._id, name: user.name, email: user.email },
