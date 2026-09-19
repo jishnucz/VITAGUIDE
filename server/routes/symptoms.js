@@ -1,9 +1,10 @@
 const express = require('express');
 const Symptom = require('../model/symptom');
 const router = express.Router();
+const { authenticateToken } = require('../utils/jwthelper');
 
 // Get all symptoms
-router.get('/', async (req, res) => {
+router.get('/', authenticateToken, async (req, res) => {
     try {
         const symptoms = await Symptom.find();
         res.json(symptoms);
@@ -13,7 +14,7 @@ router.get('/', async (req, res) => {
 });
 
 // Update symptom by ID
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticateToken, async (req, res) => {
     try {
         const updatedSymptom = await Symptom.findByIdAndUpdate(req.params.id, req.body, { new: true });
         if (!updatedSymptom) {
@@ -26,7 +27,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete symptom by ID
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticateToken, async (req, res) => {
     try {
         const deletedSymptom = await Symptom.findByIdAndDelete(req.params.id);
         if (!deletedSymptom) {

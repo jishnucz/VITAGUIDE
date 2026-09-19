@@ -22,6 +22,7 @@ const router = express.Router();
 const PersonalDetails = require("../model/PersonalDetails");
 const multer = require("multer");
 const path = require("path");
+const { authenticateToken } = require("../utils/jwthelper");
 
 // Ensure the 'uploads' directory exists or create it
 const fs = require("fs");

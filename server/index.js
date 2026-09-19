@@ -14,7 +14,7 @@ const DietPlan = require("./model/DietPlan");
 const cookieParser = require("cookie-parser");
 const vitaminSideEffects = require("./routes/vitaminSideEffects");
 const vitamins = require("./routes/vitaminInfo");
-const { generateToken, verifyToken } = require("./utils/jwthelper");
+const { generateToken, verifyToken, authenticateToken } = require("./utils/jwthelper");
 const app = express();
 const Admin = require("./model/admin");
 const fs = require("fs");
@@ -31,7 +31,7 @@ if (!MONGODB_URI) {
 
 // Middleware
 app.use(express.json());
-app.use(cors());
+app.use(cors({ origin: process.env.CLIENT_ORIGIN || "http://localhost:5173" }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(cookieParser());
 // MongoDB connection
@@ -182,7 +182,7 @@ app.get("/userprofile", async (req, res) => {
 
 // Register endpoint
 // PersonalDetails route
-app.use("/api/personal-details", PersonalDetails);
+app.use("/api/personal-details", authenticateToken, PersonalDetails);
 
 app.use("/api/feedback", feedbackRoutes);
 
@@ -277,7 +277,7 @@ app.post("/send-email", (req, res) => {
   });
 });
 
-app.get("/api/symptoms", async (req, res) => {
+app.get("/api/symptoms", authenticateToken, async (req, res) => {
   try {
     const symptoms = await Symptom.find({});
     res.json(symptoms);
@@ -287,7 +287,7 @@ app.get("/api/symptoms", async (req, res) => {
 });
 
 // POST endpoint to handle symptom submissions
-app.post("/api/symptoms", async (req, res) => {
+app.post("/api/symptoms", authenticateToken, async (req, res) => {
   try {
     const symptomData = new Symptom(req.body);
     await symptomData.save();
@@ -1440,7 +1440,7 @@ const generateDietPlan = (vitaminDeficiency) => {
 
   return plans[vitaminDeficiency] || [];
 };
-app.post("/api/diet-plan", async (req, res) => {
+app.post("/api/diet-plan", authenticateToken, async (req, res) => {
   try {
     const dietData = new DietPlan(req.body);
     await dietData.save();

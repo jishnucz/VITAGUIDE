@@ -2,9 +2,10 @@ const express = require("express");
 const Feedback = require("../model/Feedback");
 const { generateToken, verifyToken } = require("../utils/jwthelper");
 const router = express.Router();
+const { authenticateToken } = require("../utils/jwthelper");
 
 // Endpoint to submit feedback
-router.post("/submitFeedback", async (req, res) => {
+router.post("/submitFeedback", authenticateToken, async (req, res) => {
   const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
@@ -36,7 +37,7 @@ router.post("/submitFeedback", async (req, res) => {
   }
 });
 
-router.get("/getAllFeedback", async (req, res) => {
+router.get("/getAllFeedback", authenticateToken, async (req, res) => {
   try {
     const feedbackEntries = await Feedback.find();
     res.status(200).json(feedbackEntries);
@@ -45,7 +46,7 @@ router.get("/getAllFeedback", async (req, res) => {
   }
 });
 
-router.get("/userFeedback", async (req, res) => {
+router.get("/userFeedback", authenticateToken, async (req, res) => {
   try {
     // Get token from the Authorization header
     const token = req.headers.authorization?.split(" ")[1];
@@ -75,7 +76,7 @@ router.get("/userFeedback", async (req, res) => {
 });
 
 // Endpoint to delete feedback
-router.delete("/deleteFeedback/:id", async (req, res) => {
+router.delete("/deleteFeedback/:id", authenticateToken, async (req, res) => {
   try {
     await Feedback.findByIdAndDelete(req.params.id);
     res.status(200).send("Feedback deleted successfully!");
@@ -85,7 +86,7 @@ router.delete("/deleteFeedback/:id", async (req, res) => {
 });
 
 // Endpoint to update feedback
-router.put("/updateFeedback/:id", async (req, res) => {
+router.put("/updateFeedback/:id", authenticateToken, async (req, res) => {
   try {
     const updatedFeedback = await Feedback.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.status(200).send("Feedback updated successfully!");
