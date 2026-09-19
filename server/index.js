@@ -19,6 +19,15 @@ const app = express();
 const Admin = require("./model/admin");
 const fs = require("fs");
 
+const PORT = Number(process.env.PORT) || 3001;
+const MONGODB_URI = process.env.MONGODB_URI;
+const MAIL_USER = process.env.MAIL_USER;
+const MAIL_PASSWORD = process.env.MAIL_PASSWORD;
+
+if (!MONGODB_URI) {
+  throw new Error("MONGODB_URI must be set in the server environment");
+}
+
 // Middleware
 app.use(express.json());
 app.use(cors());
@@ -27,7 +36,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(cookieParser());
 // MongoDB connection
 mongoose
-  .connect("mongodb://127.0.0.1:27017/employee")
+  .connect(MONGODB_URI)
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.log("MongoDB connection error:", err));
 
@@ -59,7 +68,6 @@ app.post("/login", async (req, res) => {
       return res.status(404).json({ error: "No record existed" });
     }
 
-    // Direct password comparison
     if (user.password !== password) {
       return res.status(401).json({ error: "The password is incorrect" });
     }
@@ -71,8 +79,6 @@ app.post("/login", async (req, res) => {
       email: user.email,
       // Add other user fields as needed
     };
-    console.log(token);
-
     res.json({
       message: "Login successful",
       token,
@@ -244,12 +250,15 @@ app.post("/send-email", (req, res) => {
     return res.status(400).json({ message: "Invalid vitamin selected." });
   }
 
-  // Create a Nodemailer transporter
+  if (!MAIL_USER || !MAIL_PASSWORD) {
+    return res.status(503).json({ message: "Email service is not configured." });
+  }
+
   const transporter = nodemailer.createTransport({
-    service: "gmail", // Email service
+    service: "gmail",
     auth: {
-      user: "jishnum2017123@gmail.com", // Use env variable
-      pass: "REDACTED", // Use env variable
+      user: MAIL_USER,
+      pass: MAIL_PASSWORD,
     },
   });
 
@@ -261,7 +270,7 @@ app.post("/send-email", (req, res) => {
 
   // Prepare the email options
   const mailOptions = {
-    from: "jishnum2017123@gmail.com",
+    from: MAIL_USER,
     to: email,
     subject: `Your Personalized Diet Plan for ${vitamin} from VitaGuide`,
     html: emailContent, // Use the content from the external HTML file
@@ -1478,7 +1487,6 @@ app.post("/api/diet-plan", async (req, res) => {
 app.use("/api/vitamins", vitaminRoutes);
 
 // Start server
-const PORT = 3001; // Port can be changed as needed
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

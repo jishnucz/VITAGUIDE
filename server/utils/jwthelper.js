@@ -1,7 +1,10 @@
 const jwt = require('jsonwebtoken');
 
-// Replace this with a secure secret key stored in environment variables
-const JWT_SECRET = process.env.JWT_SECRET || 'REDACTED';
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+    throw new Error('JWT_SECRET must be set in the server environment');
+}
 
 const generateToken = (userId, email) => {
     try {
