@@ -181,12 +181,6 @@ app.get("/userprofile", async (req, res) => {
 });
 
 // Register endpoint
-app.post("/register", (req, res) => {
-  EmployeeModel.create(req.body)
-    .then((employees) => res.status(201).json(employees)) // 201 Created
-    .catch((err) => res.status(400).json({ error: err.message })); // 400 Bad Request
-});
-
 // PersonalDetails route
 app.use("/api/personal-details", PersonalDetails);
 
